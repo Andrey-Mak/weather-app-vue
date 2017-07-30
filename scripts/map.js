@@ -1,17 +1,18 @@
-var marker;
+var marker, map;
+
 function initMap() {
-	var map = new google.maps.Map(document.getElementById('map'), {
-		center: {lat: 30.397, lng: 50.644},
+	map = new google.maps.Map(document.getElementById('map'), {
+		center: {lat: 50.46, lng: 30.51},
 		zoom: 6
 	});
 
 	if (navigator.geolocation) {
 		navigator.geolocation.getCurrentPosition(function(position) {
-			coordinates = {
+			vm.coordinates = {
 				lat: position.coords.latitude,
 				lng: position.coords.longitude
 			};
-			placeMarkerAndPanTo(coordinates, map);
+			placeMarkerAndPanTo(vm.coordinates, map);
 			vm.getCoordinates();
 		}, function() {
 			handleLocationError(true, map.getCenter());
@@ -21,15 +22,15 @@ function initMap() {
 	}
 
 	map.addListener('click', function(e) {
-		coordinates = {
+		vm.coordinates = {
 			lat: e.latLng.lat(),
 			lng: e.latLng.lng()
 		};
-		marker.setMap(null);
-		placeMarkerAndPanTo(e.latLng, map);
+		placeMarkerAndPanTo(e.latLng);
 	});
 }
-function placeMarkerAndPanTo(latLng, map) {
+function placeMarkerAndPanTo(latLng){
+	if(marker) marker.setMap(null);
 	marker = new google.maps.Marker({
 		position: latLng,
 		map: map

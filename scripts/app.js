@@ -1,10 +1,9 @@
 	var apiUrl = 'http://api.openweathermap.org/data/2.5/forecast';
 	var apiId = '&appid=412a5eaeb20d769901d086e53c8ade71';
 	var keys = '&units=metric&lang=ru';
-	var coordinates = {
-		lat: 30,
-		lng: 50
-	};
+
+	var maxHistorySize = 10;
+
 	function formatDate(num){
 		return (num < 10) ? '0' + num : num;
 	}
@@ -13,13 +12,15 @@
 		el: '#app',
 		data: {
 			search_city: '',
-			showMap: false,
-			viewed: [],
-			info: '',
-			show: false,
-			latitude: coordinates.lat,
-			longitude: coordinates.lng,
+			coordinates: {
+				lat: 30,
+				lng: 50
+			},
+			viewed: localStorage.getItem("weather") ? JSON.parse(localStorage.getItem("weather")) : [],
+			weatherInCity: '',
+			showWeather: false,
 			activeTab: "0",
+			weatherForOneDay: "",
 			loaded: false
 		},
 		methods: {
@@ -27,38 +28,71 @@
 				var that = this;
 				this.loaded = true;
 				$.getJSON(apiUrl + '?q=' + that.search_city + apiId + keys, function (data) {
-					that.loaded =  false;
-					that.info = data;
+					that.updateWeatherInfo(data);
+					that.showSavedInfo(data);
 				});
 			},
 			getCoordinates: function(){
-				this.latitude = coordinates.lat.toFixed(2);
-				this.longitude = coordinates.lng.toFixed(2);
 				var that = this;
 				this.loaded = true;
-				$.getJSON(apiUrl + '?lat=' + that.latitude + '&lon=' + that.longitude + apiId + keys, function (data) {
-					console.log(data);
-					that.loaded =  false;
-					that.info = data;
-					that.search_city = that.info.city.name;
-					that.viewed.push(that.info);
-					that.show = true;
+				$.getJSON(apiUrl + '?lat=' + that.coordinates.lat.toFixed(2) + '&lon=' + that.coordinates.lng.toFixed(2) + apiId + keys, function (data) {
+					that.updateWeatherInfo(data);
 				});
 			},
 			getWatherForTheDay: function(){
 				var prevItem = "";
-				var weatherForOneDay = [];
-				for (var i = 0, k = -1; i < this.info.list.length; i++) {
-					var currentDay = this.info.list[i]["dt_txt"].split(" ");
+				this.weatherForOneDay = [];
+				for (var i = 0, k = -1; i < this.weatherInCity.list.length; i++) {
+					var currentDay = this.weatherInCity.list[i]["dt_txt"].split(" ");
 					if(currentDay[0] !== prevItem){
 						k++;
-						weatherForOneDay[k] = [];
+						this.weatherForOneDay[k] = [];
 					}
-					weatherForOneDay[k].push(this.info.list[i]);
+					this.weatherForOneDay[k].push(this.weatherInCity.list[i]);
 					prevItem = currentDay[0];
 				}
-				console.log(weatherForOneDay);
-				return weatherForOneDay;
+				return this.weatherForOneDay;
+			},
+			updateWeatherInfo: function(data){
+				this.updateStorage(data);
+				this.weatherInCity = data;
+				this.getWatherForTheDay();
+				this.search_city = this.weatherInCity.city.name;
+				this.viewed.push(this.weatherInCity);
+				this.showWeather = true;
+				localStorage.setItem("weather", JSON.stringify(this.viewed));
+				this.loaded =  false;
+			},
+			updateStorage: function(data){
+				if(this.viewed.length > maxHistorySize){
+					this.viewed.splice(0, 1);
+				}
+				this.viewed.forEach(function(cityWeather, index, arr){
+					if(cityWeather.city.id == data.city.id){
+						arr.splice(index, 1);
+					}
+				})
+			},
+			showSavedInfo: function(savedCity){
+				this.coordinates = {
+					lat: savedCity.city.coord.lat,
+					lng: savedCity.city.coord.lon
+				};
+				placeMarkerAndPanTo(this.coordinates);
+				this.weatherInCity = savedCity;
+				this.getWatherForTheDay();
+				this.search_city = savedCity.city.name;
+			},
+			deleteViewedCity: function(index){
+				if(this.viewed.length - 1 == index && this.viewed[this.viewed.length - 2]){
+					this.showSavedInfo(this.viewed[this.viewed.length - 2]);
+				}
+				this.viewed.splice(index, 1);
+			}
+		},
+		watch: {
+			viewed: function(){
+				localStorage.setItem("weather", JSON.stringify(this.viewed));
 			}
 		},
 		filters: {

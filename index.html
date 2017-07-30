@@ -15,23 +15,22 @@
 		<input id="search_city" v-model="search_city" type="text"
 			   placeholder="Название населенного пункта, страны или региона" value="">
 		<button v-on:click="getWeatherForCity">Search</button>
-		<p v-on:click="showMap = true">Показать на карте</p>
 	</div>
 
 	<div id="map" v-on:click="getCoordinates"></div>
 
-	<div class="info-panel" v-if="info.city">
+	<div class="info-panel" v-if="weatherInCity.city">
 		<h2>
-			Your find the weather in <b>{{search_city}} ({{info.city.country}})</b>.<br/>
-			<span>Current coordinates {{ latitude }} / {{ longitude }}:</span>
+			Your find the weather in <b>{{search_city}} ({{weatherInCity.city.country}})</b>.<br/>
+			<span>Current coordinates {{ coordinates.lat }} / {{ coordinates.lng }}:</span>
 		</h2>
-		<div id="weather-widget" class="info-panel__weather-widget">
+		<div id="weather-widget" class="info-panel__weather-widget" v-if="showWeather">
 			<div class="weather-widget__tab-group">
-				<div class="tab-group__tab" v-for="(day, index) in getWatherForTheDay()" :class="{active: activeTab == index}">
+				<div class="tab-group__tab" v-for="(day, index) in weatherForOneDay" :class="{active: activeTab == index}">
 					<div class="tab-group__header"
 						 v-on:click="activeTab = index"
-						 :style="{ left: 100/getWatherForTheDay().length * index + '%',
-						  width: 100/getWatherForTheDay().length + '%' }">
+						 :style="{ left: 100/weatherForOneDay.length * index + '%',
+						  width: 100/weatherForOneDay.length + '%' }">
 						<h4>{{ day[0].dt_txt | formatDay }}</h4>
 					</div>
 					<ul class="tab__list">
@@ -49,6 +48,13 @@
 		</div>
 		<div class="loader" v-if="loaded"></div>
 	</div>
+	<h3>Search history: </h3>
+	<ul class="viewed-city">
+		<li v-for="(city, index) in viewed">
+			<a href="#" v-on:click.prevent="showSavedInfo(city)">{{ city.city.name }}</a>
+			<div class="del-city" v-on:click="deleteViewedCity(index)">X</div>
+		</li>
+	</ul>
 </div>
 
 </body>
