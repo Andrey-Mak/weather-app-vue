@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+	<meta charset="UTF-8">
+	<title>Weather</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js" type="text/javascript"></script>
+	<script src="scripts/vue.js" type="text/javascript"></script>
+	<link rel="stylesheet" href="styles/preloader.css"/>
+	<link rel="stylesheet" href="styles/style.css"/>
+</head>
+<body>
+<div class="container" id="app">
+	<h1>Weather</h1>
+	<div class="search-form">
+		<input id="search_city" v-model="search_city" type="text"
+			   placeholder="Название населенного пункта, страны или региона" value="">
+		<button v-on:click="getWeatherForCity">Search</button>
+		<p v-on:click="showMap = true">Показать на карте</p>
+	</div>
+
+	<div id="map" v-on:click="getCoordinates"></div>
+
+	<div class="info-panel" v-if="info.city">
+		<h2>
+			Your find the weather in <b>{{search_city}} ({{info.city.country}})</b>.<br/>
+			<span>Current coordinates {{ latitude }} / {{ longitude }}:</span>
+		</h2>
+		<div id="weather-widget" class="info-panel__weather-widget">
+			<div class="weather-widget__tab-group">
+				<div class="tab-group__tab" v-for="(day, index) in getWatherForTheDay()" :class="{active: activeTab == index}">
+					<div class="tab-group__header"
+						 v-on:click="activeTab = index"
+						 :style="{ left: 100/getWatherForTheDay().length * index + '%',
+						  width: 100/getWatherForTheDay().length + '%' }">
+						<h4>{{ day[0].dt_txt | formatDay }}</h4>
+					</div>
+					<ul class="tab__list">
+						<li v-for="hours in day">
+							<h4>{{ hours.dt_txt | formatTime }}</h4>
+							<img :src="'https://openweathermap.org/img/w/' + hours.weather[0].icon + '.png'" width="80" height="80">
+
+							<p><strong>{{ hours.main.temp.toFixed() }}°C</strong></p>
+
+							<p>{{ hours.weather[0].description }}</p>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+		<div class="loader" v-if="loaded"></div>
+	</div>
+</div>
+
+</body>
+<script src="scripts/app.js" type="text/javascript"></script>
+<script src="scripts/map.js" type="text/javascript"></script>
+<script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAvdTm8vvyzGSU4O86H3H0czyncKj8e-A4&callback=initMap"></script>
+</html>

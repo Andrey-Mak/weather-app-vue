@@ -1,0 +1,23 @@
+{
+  "name": "weather-app-vue",
+  "homepage": "https://github.com/Andrey-Mak/weather-app-vue",
+  "authors": [
+    "AndreyMak <andreymakwork@gmail.com>"
+  ],
+  "description": "Weather app",
+  "main": "index.html",
+  "keywords": [
+    "weather"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "vue": "^2.4.2"
+  }
+}
